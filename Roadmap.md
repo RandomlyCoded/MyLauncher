@@ -14,5 +14,6 @@
 launcher features
 ---
 - custom executable
+- modrinth modpack support
 - wrappers (e.g. primusrun on linux)
 - changing username (only works for singleplayer)
