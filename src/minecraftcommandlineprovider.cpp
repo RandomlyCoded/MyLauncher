@@ -40,8 +40,6 @@ QStringList MinecraftCommandLineProvider::readArguments(QFile &file)
     QJsonParseError jsonStatus;
     const auto versionConfig = QJsonDocument::fromJson(file.readAll(), &jsonStatus);
 
-#warning we also need to handle libraries
-
     const auto jsonArguments = versionConfig["arguments"].toObject();
 
     const auto jsonGameArguments = jsonArguments["game"].toArray();
@@ -93,7 +91,6 @@ std::optional<QStringList> MinecraftCommandLineProvider::handleConditionalArgume
 
 bool MinecraftCommandLineProvider::checkRules(QJsonArray rules)
 {
-#warning implement rule handling
     return false;
 }
 
