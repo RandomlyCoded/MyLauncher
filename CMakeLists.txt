@@ -23,8 +23,7 @@ qt_add_qml_module(appMyLauncher
 
     SOURCES src/minecraftcommandlineprovider.h src/minecraftcommandlineprovider.cpp
     SOURCES src/config.h src/config.cpp
-    RESOURCES ReadMe.md
-    RESOURCES Roadmap.md
+    RESOURCES ReadMe.md Roadmap.md
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
