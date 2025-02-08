@@ -47,6 +47,7 @@ QStringList MinecraftCommandLineProvider::readArguments(QFile &file)
 
     QStringList arguments{};
 
+    arguments.append(parseArgumentArray(jsonJvmArguments));
     arguments.append(parseArgumentArray(jsonGameArguments));
 
     if (const auto inherited = versionConfig["inheritsFrom"]; inherited != QJsonValue::Undefined) {
@@ -60,13 +61,31 @@ QStringList MinecraftCommandLineProvider::readArguments(QFile &file)
 
 QString MinecraftCommandLineProvider::parseOption(const QString opt)
 {
-    if (opt.startsWith('$')) {
-        auto cfg = Config::instance();
-        const auto l = opt.length();
-        return cfg->getConfig(opt.left(l - 1).right(l - 3)).toString();
-    }
+    QString parsed;
 
-    return opt;
+    if (opt.contains('$')) {
+        auto cfg = Config::instance();
+        const auto slices = opt.split('$');
+
+        for (const auto &slice: slices) {
+            if (slice.isEmpty())
+                continue;
+
+            if (slice.startsWith('{')) {
+                const auto l = slice.length();
+
+                // trim off left end right curly brackets
+                parsed += cfg->getConfig(slice.left(l - 1).right(l - 2)).toString();
+            } else
+                parsed += slice;
+
+        }
+    } else
+        parsed = opt;
+
+    qInfo() << parsed;
+
+    return parsed;
 }
 
 std::optional<QStringList> MinecraftCommandLineProvider::handleConditionalArgument(QJsonObject arg)
