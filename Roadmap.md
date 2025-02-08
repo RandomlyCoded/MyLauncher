@@ -15,3 +15,4 @@ launcher features
 ---
 - custom executable
 - wrappers (e.g. primusrun on linux)
+- changing username (only works for singleplayer)
