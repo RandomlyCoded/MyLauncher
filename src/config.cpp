@@ -17,6 +17,8 @@ Config::Config(QObject *parent)
         mcRoot.cd(".minecraft");
 
         m_settings.setValue("mcRoot", mcRoot.absolutePath());
+        m_settings.setValue("launcher_name", "randomly.MyLauncher");
+        m_settings.setValue("launcher_version", LAUNCHER_VERSION);
     }
 }
 
