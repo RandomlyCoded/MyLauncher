@@ -83,8 +83,6 @@ QString MinecraftCommandLineProvider::parseOption(const QString opt)
     } else
         parsed = opt;
 
-    qInfo() << parsed;
-
     return parsed;
 }
 
