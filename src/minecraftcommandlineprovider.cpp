@@ -131,7 +131,7 @@ std::optional<QPair<QString, QStringList>> MinecraftCommandLineProvider::getComm
         return {};
     }
 
-    return QPair{"java", readArguments(mcConfig)};
+    return QPair<QString, QStringList>{"java", readArguments(mcConfig)};
 }
 
 } // namespace randomly
