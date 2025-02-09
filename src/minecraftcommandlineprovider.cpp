@@ -82,8 +82,6 @@ QJsonDocument MinecraftCommandLineProvider::getCombinedVersionConfig(const QStri
 
     auto newDoc = QJsonDocument{};
 
-    qCInfo(lcCommandLineProvider).noquote() << config.toJson();
-
     for(auto inherited = config["inheritsFrom"]; inherited != QJsonValue::Undefined; inherited = newDoc["inheritsFrom"]) {
         newDoc = loadJsonFromVersion(inherited.toString());
         qCInfo(lcCommandLineProvider) << "inheriting" << inherited.toString();
@@ -93,8 +91,6 @@ QJsonDocument MinecraftCommandLineProvider::getCombinedVersionConfig(const QStri
 
         config.setObject(configObj);
     }
-
-    qCInfo(lcCommandLineProvider).noquote() << config.toJson();
 
     return config;
 }
