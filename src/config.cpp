@@ -6,6 +6,7 @@
 namespace randomly {
 
 Q_LOGGING_CATEGORY(lcConfig, "randomly.MyLauncher.Config")
+Q_LOGGING_CATEGORY(lcTmpConfig, "randomly.MyLauncher.Config.Tmp")
 
 Config::Config(QObject *parent)
     : QObject{parent}
@@ -39,6 +40,39 @@ void Config::setConfig(QString name, QVariant value)
 {
     qCInfo(lcConfig) << "setting config" << name << "->" << value.toString();
     m_settings.setValue(name, value);
+}
+
+QVariant Config::getTemp(QString name)
+{
+    qCInfo(lcTmpConfig) << "getting temp" << name;
+    return m_temp.value(name, QVariant{});
+}
+
+void Config::setTemp(QString name, QVariant value)
+{
+    qCInfo(lcTmpConfig) << "setting temp" << name << "->" << value.toString();
+
+    m_temp[name] = value;
+}
+
+QVariant Config::getAny(QString name)
+{
+    const auto config = getConfig(name);
+
+    if (config.isNull())
+        return getTemp(name);
+
+    return config;
+}
+
+void Config::saveTemp(QString name)
+{
+    setConfig(name, getTemp(name));
+}
+
+void Config::loadConfigAsTemp(QString name)
+{
+    setTemp(name, getConfig(name));
 }
 
 } // namespace randomly
