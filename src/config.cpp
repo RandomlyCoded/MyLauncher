@@ -33,7 +33,7 @@ QPointer<Config> Config::instance()
 QVariant Config::getConfig(QString name)
 {
     qCInfo(lcConfig) << "getting config" << name;
-    return m_settings.value(name);
+    return m_settings.value(name, QVariant{});
 }
 
 void Config::setConfig(QString name, QVariant value)
