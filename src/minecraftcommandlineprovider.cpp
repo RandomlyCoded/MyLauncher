@@ -205,7 +205,8 @@ std::optional<QStringList> MinecraftCommandLineProvider::handleConditionalArgume
 
     QStringList values;
 
-    for (const auto &v: value.toArray())
+    const auto jsonValues = value.toArray();
+    for (const auto &v: jsonValues)
         values.append(parseOption(v.toString()));
 
     return values;
