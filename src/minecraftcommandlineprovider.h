@@ -15,16 +15,18 @@ public:
     std::optional<QPair<QString, QStringList>> getCommandLine(QString versionName);
 
 private:
-    QStringList getArguments(QString versionName);
-    QStringList readArguments(QFile &file);
+    QStringList readArguments(const QString versionName);
+    QJsonDocument loadJsonFromVersion(const QString versionName);
+    QJsonDocument getCombinedVersionConfig(const QString rootVersion);
+    void tryRecursivelyMergingObjects(QJsonObject &lhs, const QJsonObject &rhs);
 
+    QStringList parseArgumentArray(QJsonArray arguments);
     QString parseOption(const QString opt);
 
     std::optional<QStringList> handleConditionalArgument(QJsonObject arg);
-
     bool checkRules(QJsonArray rules);
 
-    QStringList parseArgumentArray(QJsonArray arguments);
+    void collectClassPath(QString &cp, const QJsonDocument &versionConfig);
 };
 
 } // namespace randomly
