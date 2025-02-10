@@ -39,9 +39,20 @@ std::optional<QPair<QString, QStringList>> MinecraftCommandLineProvider::getComm
 QStringList MinecraftCommandLineProvider::readArguments(const QString versionName)
 {
     auto cfg = Config::instance();
+    auto mcRoot = QDir{cfg->getConfig("mcRoot").toString()};
+
     QStringList arguments{};
 
     auto mergedConfig = getCombinedVersionConfig(versionName);
+
+    // store information we might need later as temporary configs
+    cfg->setTemp("version_name", mergedConfig["id"]);
+    cfg->setTemp("game_directory", mcRoot.absolutePath());
+    cfg->setTemp("assets_dir", mcRoot.absoluteFilePath("assets"));
+    cfg->setTemp("assets_index_name", mergedConfig["assetIndex"]["id"]);
+    cfg->setTemp("version_type", mergedConfig["type"]);
+
+    cfg->setTemp("classpath", collectClassPath(mergedConfig));
 
     /*
      * - store all required information as temp in Config
