@@ -26,7 +26,8 @@ private:
     std::optional<QStringList> handleConditionalArgument(QJsonObject arg);
     bool checkRules(QJsonArray rules);
 
-    void collectClassPath(QString &cp, const QJsonDocument &versionConfig);
+    QString collectClassPath(const QJsonDocument &versionConfig);
+    QString generateRelativePathFromName(const QString libraryName);
 };
 
 } // namespace randomly

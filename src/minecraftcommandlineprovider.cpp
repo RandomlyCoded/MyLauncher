@@ -236,19 +236,65 @@ bool MinecraftCommandLineProvider::checkRules(QJsonArray rules)
     return false;
 }
 
-void MinecraftCommandLineProvider::collectClassPath(QString &cp, const QJsonDocument &versionConfig)
+QString MinecraftCommandLineProvider::collectClassPath(const QJsonDocument &versionConfig)
 {
+    QString cp;
+
+    QHash<QString, char> librarySet;
+
+    qInfo().noquote() << QJsonDocument(versionConfig["libraries"].toArray()).toJson();
+
     const auto cfg = Config::instance();
-    auto libraryRoot = QDir{cfg->getConfig("myRoot").toString()};
+    auto libraryRoot = QDir{cfg->getConfig("mcRoot").toString()};
     libraryRoot.cd("libraries");
 
     const auto libraryInfoArray = versionConfig["libraries"].toArray();
 
-    for (const QJsonValue &library: libraryInfoArray) {
-        const auto path = libraryRoot.absoluteFilePath(library["downloads"]["artifact"]["path"].toString());
-        cp += path;
+    for (int i = 0; i < libraryInfoArray.size(); ++i) {
+        const auto library = libraryInfoArray.at(i).toObject();
+
+        // avoid duplicates
+        const auto libraryName = library["name"].toString();
+        if (librarySet.contains(libraryName))
+            continue;
+
+        librarySet.insert(libraryName, '*');
+
+        // if there are rules, check them. If they don't allow this library, skip it.
+        if (const auto rules = library["rules"]; rules != QJsonValue::Undefined &&
+                                                 !checkRules(rules.toArray()))
+            continue;
+
+        const auto download = library["downloads"];
+
+        QString path;
+
+        if (download != QJsonValue::Undefined) // simple download
+            path = download["artifact"]["path"].toString();
+
+        else
+            path = generateRelativePathFromName(libraryName);
+
+        qInfo() << path;
+
+        cp += libraryRoot.absoluteFilePath(path);
         cp += ":";
     }
+
+    auto mcVersionDir = QDir{cfg->getConfig("mcRoot").toString()};
+    mcVersionDir.cd("versions");
+    const auto versionName = cfg->getTemp("version_name").toString();
+    mcVersionDir.cd(versionName);
+
+    return cp + mcVersionDir.absoluteFilePath(versionName + ".jar");
+}
+
+QString MinecraftCommandLineProvider::generateRelativePathFromName(const QString libraryName)
+{
+    auto slices = libraryName.split(":");
+    slices[0].replace('.', '/');
+
+    return QString("%1/%2/%3/%2-%3.jar").arg(slices[0], slices[1], slices[2]);
 }
 
 } // namespace randomly
