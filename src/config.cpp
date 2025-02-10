@@ -59,7 +59,7 @@ QVariant Config::getAny(QString name)
 {
     const auto config = getConfig(name);
 
-    if (config.isNull())
+    if (config == QVariant{})
         return getTemp(name);
 
     return config;
