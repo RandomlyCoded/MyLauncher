@@ -119,7 +119,6 @@ void MinecraftCommandLineProvider::tryRecursivelyMergingObjects(QJsonObject &lhs
             auto lValue = lhs[key];
 
             // arrays and objects need special handling, so we check the type of the value
-
             switch (lValue.type()) {
             case QJsonValue::Bool:
             case QJsonValue::Double:
@@ -174,7 +173,6 @@ QStringList MinecraftCommandLineProvider::parseArgumentArray(QJsonArray jsonArgu
 
 QString MinecraftCommandLineProvider::parseOption(const QString opt)
 {
-
     if (!opt.contains('$'))
         return opt;
 
