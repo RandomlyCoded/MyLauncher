@@ -134,7 +134,16 @@ void MinecraftCommandLineProvider::tryRecursivelyMergingObjects(QJsonObject &lhs
             case QJsonValue::Array: {
                 // arrays are just combined, nothing fancy here
                 auto lArray = lValue.toArray();
-                lArray.append(rhs[key]);
+                const auto rValue = rhs[key];
+
+                if (rValue.type() != QJsonValue::Array)
+                    lArray.append(rValue);
+
+                else {
+                    const auto rArray = rValue.toArray();
+                    for (const auto rv: rArray)
+                        lArray.append(rv);
+                }
 
                 lhs[key] = lArray;
             } break;
