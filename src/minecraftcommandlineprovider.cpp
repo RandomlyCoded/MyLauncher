@@ -242,8 +242,6 @@ QString MinecraftCommandLineProvider::collectClassPath(const QJsonDocument &vers
 
     QHash<QString, char> librarySet;
 
-    qInfo().noquote() << QJsonDocument(versionConfig["libraries"].toArray()).toJson();
-
     const auto cfg = Config::instance();
     auto libraryRoot = QDir{cfg->getConfig("mcRoot").toString()};
     libraryRoot.cd("libraries");
@@ -274,8 +272,6 @@ QString MinecraftCommandLineProvider::collectClassPath(const QJsonDocument &vers
 
         else
             path = generateRelativePathFromName(libraryName);
-
-        qInfo() << path;
 
         cp += libraryRoot.absoluteFilePath(path);
         cp += ":";
