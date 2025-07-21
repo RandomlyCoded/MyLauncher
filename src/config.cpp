@@ -15,12 +15,34 @@ Config::Config(QObject *parent)
     if (Q_UNLIKELY(m_settings.allKeys().isEmpty())) {
         qCInfo(lcConfig) << "resetting to default config";
         auto mcRoot = QDir(qEnvironmentVariable("HOME"));
-        mcRoot.cd(".minecraft");
+        mcRoot.cd("MyLauncher");
 
         m_settings.setValue("mcRoot", mcRoot.absolutePath());
         m_settings.setValue("launcher_name", "randomly.MyLauncher");
-        m_settings.setValue("launcher_version", LAUNCHER_VERSION);
+
+        m_settings.setValue("os_name",
+#ifdef Q_OS_WIN
+        "windows"
+#elif defined Q_OS_DARWIN
+        "osx"
+#elif defined Q_OS_LINUX
+        "linux"
+#else
+#warning your OS is not handled yet! Assuming Linux...
+        "linux"
+#endif
+                            );
+
+        m_settings.setValue("os_version", QSysInfo::kernelVersion());
+
+        if (QSysInfo::currentCpuArchitecture() == "x86_64")
+            m_settings.setValue("os_arch", "x86");
+        else
+            m_settings.setValue("os_arch", QSysInfo::currentCpuArchitecture());
     }
+
+    // always set this to update versions
+    m_settings.setValue("launcher_version", LAUNCHER_VERSION);
 }
 
 QPointer<Config> Config::instance()

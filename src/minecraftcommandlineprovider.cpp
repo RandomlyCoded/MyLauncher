@@ -1,6 +1,7 @@
 #include "src/minecraftcommandlineprovider.h"
 
 #include "src/config.h"
+#include "src/downloader.h"
 
 #include <QDir>
 #include <QFile>
@@ -16,6 +17,7 @@ Q_LOGGING_CATEGORY(lcCommandLineProvider, "randomly.MyLauncher.CmdLineProvider")
 
 MinecraftCommandLineProvider::MinecraftCommandLineProvider(QObject *parent)
     : QObject{parent}
+    , m_downloads{new Downloader(this)}
 {}
 
 std::optional<QPair<QString, QStringList>> MinecraftCommandLineProvider::getCommandLine(QString versionName)
@@ -55,16 +57,24 @@ QStringList MinecraftCommandLineProvider::readArguments(const QString versionNam
     cfg->setTemp("classpath", collectClassPath(mergedConfig));
 
     /*
-     * - store all required information as temp in Config
-     *  - merge all version files as one json?
-     * - collect class path
-     *  - download required libraries
-     * - get main class
+     * + store all required information as temp in Config
+     *  + merge all version files as one json?
+     * + collect class path
+     *  + download required libraries
+     * + get main class
      * - get auth token
-     * - read arguments from combined? json, replace ${} from non-persistent Config-section
+     * + read arguments from combined? json, replace ${} from non-persistent Config-section
      *
      * - implement status signals for future UI
      */
+
+    // schedule downloads while parsing the arguments
+    downloadLibraries(mergedConfig);
+
+    // the argument order is: jvm, logging, mainClass, game
+    arguments += parseArgumentArray(mergedConfig["arguments"]["jvm"].toArray());
+    arguments += mergedConfig["mainClass"].toString();
+    arguments += parseArgumentArray(mergedConfig["arguments"]["game"].toArray());
 
     return arguments;
 }
@@ -230,17 +240,59 @@ std::optional<QStringList> MinecraftCommandLineProvider::handleConditionalArgume
     return values;
 }
 
-bool MinecraftCommandLineProvider::checkRules(QJsonArray rules)
+bool MinecraftCommandLineProvider::checkRules(const QJsonArray rules)
 {
-    qCInfo(lcCommandLineProvider) << "checking rules" << rules << "\tNOT IMPLEMENTED YET";
-    return false;
+    const auto cfg = Config::instance();
+
+    bool applies = true;
+
+    // I only know of rules checking the OS, so that's the only thing I'm implementing
+    for (int i = 0; i < rules.size(); ++i) {
+        const auto rule = rules.at(i).toObject();
+
+        auto confirmed = confirmOs(rule) && confirmFeatures(rule);
+
+        if (rule["action"] == "disallow")
+            confirmed ^= 1;
+
+        applies &= confirmed;
+    }
+
+    return applies;
+}
+
+bool MinecraftCommandLineProvider::confirmOs(const QJsonObject &rule)
+{
+    if (!rule.contains("os"))
+        return true;
+
+    const auto cfg = Config::instance();
+    const auto os = rule["os"].toObject();
+
+    return safelyCheckValue(os, "name", QRegularExpression{cfg->getConfig("os_name").toString()}) &&
+           safelyCheckValue(os, "version", QRegularExpression{cfg->getConfig("os_version").toString()}) &&
+           safelyCheckValue(os, "arch", QRegularExpression{cfg->getConfig("os_arch").toString()});
+}
+
+bool MinecraftCommandLineProvider::confirmFeatures(const QJsonObject &rule)
+{
+    // probably just a lookup in config?
+    return !rule.contains("features");
+}
+
+bool MinecraftCommandLineProvider::safelyCheckValue(const QJsonObject &value, QString key, QRegularExpression expected)
+{
+    if (!value.contains(key))
+        return true;
+
+    return expected.match(value["key"].toString()).hasMatch();
 }
 
 QString MinecraftCommandLineProvider::collectClassPath(const QJsonDocument &versionConfig)
 {
     QString cp;
 
-    QHash<QString, char> librarySet;
+    QSet<QString> librarySet;
 
     const auto cfg = Config::instance();
     auto libraryRoot = QDir{cfg->getConfig("mcRoot").toString()};
@@ -256,24 +308,13 @@ QString MinecraftCommandLineProvider::collectClassPath(const QJsonDocument &vers
         if (librarySet.contains(libraryName))
             continue;
 
-        librarySet.insert(libraryName, '*');
+        librarySet.insert(libraryName);
 
-        // if there are rules, check them. If they don't allow this library, skip it.
-        if (const auto rules = library["rules"]; rules != QJsonValue::Undefined &&
-                                                 !checkRules(rules.toArray()))
+        auto path = getArtifactPath(library);
+        if (!path.has_value())
             continue;
 
-        const auto download = library["downloads"];
-
-        QString path;
-
-        if (download != QJsonValue::Undefined) // simple download
-            path = download["artifact"]["path"].toString();
-
-        else
-            path = generateRelativePathFromName(libraryName);
-
-        cp += libraryRoot.absoluteFilePath(path);
+        cp += libraryRoot.absoluteFilePath(path.value());
         cp += ":";
     }
 
@@ -291,6 +332,74 @@ QString MinecraftCommandLineProvider::generateRelativePathFromName(const QString
     slices[0].replace('.', '/');
 
     return QString("%1/%2/%3/%2-%3.jar").arg(slices[0], slices[1], slices[2]);
+}
+
+std::optional<QString> MinecraftCommandLineProvider::getArtifactPath(const QJsonObject library)
+{
+    // if there are rules, check them. If they don't allow this library, skip it.
+    if (const auto rules = library["rules"]; rules != QJsonValue::Undefined &&
+                                             !checkRules(rules.toArray()))
+        return {};
+
+    const auto download = library["downloads"];
+    const auto libraryName = library["name"].toString();
+
+    if (download != QJsonValue::Undefined) // simple download
+        return download["artifact"]["path"].toString();
+
+    else
+        return generateRelativePathFromName(libraryName);
+}
+
+void MinecraftCommandLineProvider::downloadLibraries(const QJsonDocument &versionConfig)
+{
+    QSet<QString> librarySet;
+
+    const auto cfg = Config::instance();
+    auto libraryRoot = QDir{cfg->getConfig("mcRoot").toString()};
+    libraryRoot.cd("libraries");
+
+    const auto libraryInfoArray = versionConfig["libraries"].toArray();
+
+    for (int i = 0; i < libraryInfoArray.size(); ++i) {
+        const auto library = libraryInfoArray.at(i).toObject();
+
+        // avoid duplicates
+        const auto libraryName = library["name"].toString();
+        if (librarySet.contains(libraryName))
+            continue;
+
+        librarySet.insert(libraryName);
+
+        const auto path = getArtifactPath(library);
+        if (!path.has_value())
+            continue;
+
+        const auto absolutePath = libraryRoot.absoluteFilePath(path.value());
+
+        if (!QFile(absolutePath).exists()) { // QDir gives false negatives
+            DownloadInfo info;
+            info.path = absolutePath;
+
+            const auto download = library["downloads"];
+            QJsonValue artifact;
+
+            if (download != QJsonValue::Undefined) // simple download
+                artifact = download["artifact"];
+
+            else
+                artifact = library;
+
+            info.url = artifact["url"].toString();
+            if (info.url.endsWith('/'))
+                info.url += getArtifactPath(library).value();
+
+            info.sha1 = artifact["sha1"].toString();
+            info.size = artifact["size"].toInteger();
+
+            m_downloads->download(info);
+        }
+    }
 }
 
 } // namespace randomly

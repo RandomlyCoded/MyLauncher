@@ -27,7 +27,8 @@ public:
     void saveTemp(QString name);
     void loadConfigAsTemp(QString name);
 
-signals:
+    const QSettings &settings() const { return m_settings; }
+    const QHash<QString, QVariant> &temp() const { return m_temp; }
 
 private:
     QSettings m_settings;

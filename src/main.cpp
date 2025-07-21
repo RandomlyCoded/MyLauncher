@@ -18,7 +18,9 @@ int Application::run()
     QQmlApplicationEngine qml;
 
     MinecraftCommandLineProvider p;
-    qInfo() << p.getCommandLine("fabric-loader-0.15.11-1.18.2").value().second;
+
+    auto cmdLine = p.getCommandLine("fabric-loader-0.15.11-1.18.2").value();
+    qInfo() << "\n\n" << cmdLine.second << "\n\n";
 
     qml.loadFromModule("MyLauncher", "Main");
 

@@ -6,6 +6,8 @@
 
 namespace randomly {
 
+class Downloader;
+
 class MinecraftCommandLineProvider : public QObject
 {
     Q_OBJECT
@@ -24,10 +26,18 @@ private:
     QString parseOption(const QString opt);
 
     std::optional<QStringList> handleConditionalArgument(QJsonObject arg);
-    bool checkRules(QJsonArray rules);
+    bool checkRules(const QJsonArray rules);
+    bool confirmOs(const QJsonObject &rule);
+    bool confirmFeatures(const QJsonObject &rule);
+    bool safelyCheckValue(const QJsonObject &value, QString key, QRegularExpression expected);
 
     QString collectClassPath(const QJsonDocument &versionConfig);
     QString generateRelativePathFromName(const QString libraryName);
+    std::optional<QString> getArtifactPath(const QJsonObject library);
+
+    void downloadLibraries(const QJsonDocument &versionConfig);
+
+    Downloader *m_downloads;
 };
 
 } // namespace randomly

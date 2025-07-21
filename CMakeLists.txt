@@ -24,6 +24,11 @@ qt_add_qml_module(appMyLauncher
     SOURCES src/minecraftcommandlineprovider.h src/minecraftcommandlineprovider.cpp
     SOURCES src/config.h src/config.cpp
     RESOURCES ReadMe.md Roadmap.md
+    SOURCES src/downloader.h src/downloader.cpp
+)
+
+add_custom_target(Documentation SOURCES
+    versionInfo.json
 )
 
 # versioning in C++
