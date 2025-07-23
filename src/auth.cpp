@@ -1,6 +1,7 @@
 #include "auth.h"
 #include "config.h"
 
+#include <QDesktopServices>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -272,8 +273,6 @@ void Auth::updateAccessToken()
 
     authLoop.exec(); // wait for auth to finish
     qCInfo(lcAuth) << "auth finished";
-
-    QGuiApplication::quit();
 }
 
 } // namespace randomly

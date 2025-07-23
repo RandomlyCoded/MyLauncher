@@ -5,7 +5,7 @@ project(MyLauncher VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 23)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Quick NetworkAuth)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Quick NetworkAuth)
 find_package(LibArchive REQUIRED)
 
 qt_standard_project_setup(REQUIRES 6.5)
@@ -52,7 +52,7 @@ set_target_properties(MyLauncher PROPERTIES
 )
 
 target_link_libraries(MyLauncherCore
-    PRIVATE Qt6::Core Qt6::NetworkAuth
+    PRIVATE Qt6::Core Qt6::Gui Qt6::NetworkAuth
     LibArchive::LibArchive
 )
 
