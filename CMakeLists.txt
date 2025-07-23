@@ -25,7 +25,7 @@ qt_add_executable(MyLauncher
 )
 
 qt_add_qml_module(MyLauncher
-    URI MyLauncher
+    URI MyLauncherGui
     VERSION 1.0
     QML_FILES
         qml/Main.qml
