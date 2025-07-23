@@ -51,8 +51,7 @@ void Downloader::confirmDownload(QNetworkReply *reply)
     if (info.url == "")
         return; // already downloaded/duplicate
 
-#warning
-    // qCInfo(lcDownload) << "recieved reply for" << info.url;
+    qCInfo(lcDownload) << "recieved reply for" << info.url;
 
     if (info.size != reply->size() && info.size != 0) {
         qInfo().noquote() << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute)
