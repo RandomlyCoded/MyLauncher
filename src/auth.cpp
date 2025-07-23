@@ -1,17 +1,15 @@
 #include "auth.h"
 #include "config.h"
 
-#include <QDesktopServices>
-#include <QOAuth2AuthorizationCodeFlow>
-#include <QOAuthHttpServerReplyHandler>
-#include <QGuiApplication>
-#include <QLoggingCategory>
-#include <QNetworkRequest>
+#include <QJsonArray>
 #include <QJsonDocument>
+#include <QJsonObject>
+#include <QLoggingCategory>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-#include <QJsonObject>
-#include <QJsonArray>
+#include <QNetworkRequest>
+#include <QOAuth2AuthorizationCodeFlow>
+#include <QOAuthHttpServerReplyHandler>
 #include <QRandomGenerator>
 
 namespace randomly {

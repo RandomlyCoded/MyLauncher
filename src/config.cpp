@@ -1,4 +1,4 @@
-#include "src/config.h"
+#include "config.h"
 
 #include <QDir>
 #include <QLoggingCategory>
@@ -19,6 +19,7 @@ Config::Config(QObject *parent)
 
         m_settings.setValue("mcRoot", mcRoot.absolutePath());
         m_settings.setValue("launcher_name", "randomly.MyLauncher");
+        m_settings.setValue("user_type", "msa"); // Bold assumption, but I'm not aware of any other valid account types. Mojang accounts are discontinued
 
         m_settings.setValue("os_name",
 #ifdef Q_OS_WIN
@@ -43,6 +44,15 @@ Config::Config(QObject *parent)
 
     // always set this to update versions
     m_settings.setValue("launcher_version", LAUNCHER_VERSION);
+}
+
+Config::~Config()
+{
+    qInfo() << "Config::~Config()";
+
+    m_settings.~QSettings();
+
+    QObject::~QObject();
 }
 
 QPointer<Config> Config::instance()

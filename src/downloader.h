@@ -12,6 +12,7 @@ struct DownloadInfo
     QString path;
     qsizetype size;
     QString sha1;
+    bool native = false;
 };
 
 class Downloader : public QObject
@@ -21,6 +22,7 @@ public:
     explicit Downloader(QObject *parent = nullptr);
 
     void download(const DownloadInfo &info);
+    void downloadNative(DownloadInfo &info);
 
     QList<DownloadInfo> queuedDownloads() { return m_downloads.values(); }
 
@@ -29,6 +31,7 @@ signals:
 
 private:
     void confirmDownload(QNetworkReply *reply);
+    void extractNative(const DownloadInfo &info);
 
     QNetworkAccessManager *m_ctrl;
 

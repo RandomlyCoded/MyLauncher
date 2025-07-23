@@ -1,6 +1,10 @@
-#include "src/minecraftcommandlineprovider.h"
+#include "minecraftcommandlineprovider.h"
+
+#include "auth.h"
 
 #include <QGuiApplication>
+#include <QLoggingCategory>
+#include <QProcess>
 #include <QQmlApplicationEngine>
 
 namespace randomly {
@@ -16,11 +20,20 @@ public:
 int Application::run()
 {
     QQmlApplicationEngine qml;
+    // QLoggingCategory::setFilterRules("randomly.MyLauncher.*=false");
+    QLoggingCategory::setFilterRules("randomly.MyLauncher.Config*=false");
+
+    Auth a;
+    a.obtainMinecraftToken();
 
     MinecraftCommandLineProvider p;
 
     auto cmdLine = p.getCommandLine("fabric-loader-0.15.11-1.18.2").value();
+    // auto cmdLine = p.getCommandLine("myver").value();
     qInfo() << "\n\n" << cmdLine.second << "\n\n";
+
+    QProcess mc;
+    qInfo() << QProcess::execute(cmdLine.first, cmdLine.second);
 
     qml.loadFromModule("MyLauncher", "Main");
 

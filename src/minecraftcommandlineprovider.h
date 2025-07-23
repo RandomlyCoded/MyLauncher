@@ -36,6 +36,7 @@ private:
     std::optional<QString> getArtifactPath(const QJsonObject library);
 
     void downloadLibraries(const QJsonDocument &versionConfig);
+    void prepareNativesDownload(QJsonObject classifiers);
 
     Downloader *m_downloads;
 };

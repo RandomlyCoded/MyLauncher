@@ -14,6 +14,8 @@ class Config : public QObject
 public:
     explicit Config(QObject *parent = nullptr);
 
+    ~Config();
+
     static QPointer<Config> instance();
 
     QVariant getConfig(QString name);

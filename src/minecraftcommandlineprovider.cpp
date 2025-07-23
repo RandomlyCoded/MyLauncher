@@ -1,7 +1,7 @@
-#include "src/minecraftcommandlineprovider.h"
+#include "minecraftcommandlineprovider.h"
 
-#include "src/config.h"
-#include "src/downloader.h"
+#include "config.h"
+#include "downloader.h"
 
 #include <QDir>
 #include <QFile>
@@ -35,7 +35,7 @@ std::optional<QPair<QString, QStringList>> MinecraftCommandLineProvider::getComm
     if (!launcherConfig.exists()) {} // skip launcher options or set some default values (maybe get them from Config? idk
     // i.e. screen, wrappers (like primusrun), different java executable...
 
-    return QPair<QString, QStringList>{"java", readArguments(versionName)};
+    return QPair<QString, QStringList>{"/usr/bin/java", readArguments(versionName)};
 }
 
 QStringList MinecraftCommandLineProvider::readArguments(const QString versionName)
@@ -53,6 +53,10 @@ QStringList MinecraftCommandLineProvider::readArguments(const QString versionNam
     cfg->setTemp("assets_dir", mcRoot.absoluteFilePath("assets"));
     cfg->setTemp("assets_index_name", mergedConfig["assetIndex"]["id"]);
     cfg->setTemp("version_type", mergedConfig["type"]);
+
+    // cfg->setTemp("natives_directory", mcRoot.absoluteFilePath("bin/" + cfg->getTemp("version_name").toString()));
+    // if (const auto nativesDir = QDir(cfg->getTemp("natives_directory").toString()); !nativesDir.exists())
+    //     nativesDir.mkpath(".");
 
     cfg->setTemp("classpath", collectClassPath(mergedConfig));
 
@@ -353,11 +357,13 @@ std::optional<QString> MinecraftCommandLineProvider::getArtifactPath(const QJson
 
 void MinecraftCommandLineProvider::downloadLibraries(const QJsonDocument &versionConfig)
 {
-    QSet<QString> librarySet;
+    qCInfo(lcCommandLineProvider) << "downloading libraries...";
+
+    // previously used to avoid duplicates
+    // QSet<QString> librarySet;
 
     const auto cfg = Config::instance();
-    auto libraryRoot = QDir{cfg->getConfig("mcRoot").toString()};
-    libraryRoot.cd("libraries");
+    auto libraryRoot = QDir{cfg->getConfig("mcRoot").toString() + "/libraries"};
 
     const auto libraryInfoArray = versionConfig["libraries"].toArray();
 
@@ -365,31 +371,29 @@ void MinecraftCommandLineProvider::downloadLibraries(const QJsonDocument &versio
         const auto library = libraryInfoArray.at(i).toObject();
 
         // avoid duplicates
+        // doesn't work, since some libraries have more than one entry, which sometimes contains crucial information
+        /*
         const auto libraryName = library["name"].toString();
         if (librarySet.contains(libraryName))
             continue;
 
-        librarySet.insert(libraryName);
+        librarySet.insert(libraryName); */
 
         const auto path = getArtifactPath(library);
         if (!path.has_value())
             continue;
-
         const auto absolutePath = libraryRoot.absoluteFilePath(path.value());
+
+        const auto download = library["downloads"];
+        QJsonValue artifact;
+        if (download != QJsonValue::Undefined) // simple download
+            artifact = download["artifact"];
+        else
+            artifact = library;
 
         if (!QFile(absolutePath).exists()) { // QDir gives false negatives
             DownloadInfo info;
             info.path = absolutePath;
-
-            const auto download = library["downloads"];
-            QJsonValue artifact;
-
-            if (download != QJsonValue::Undefined) // simple download
-                artifact = download["artifact"];
-
-            else
-                artifact = library;
-
             info.url = artifact["url"].toString();
             if (info.url.endsWith('/'))
                 info.url += getArtifactPath(library).value();
@@ -399,7 +403,33 @@ void MinecraftCommandLineProvider::downloadLibraries(const QJsonDocument &versio
 
             m_downloads->download(info);
         }
+
+        if (download != QJsonValue::Undefined)
+            if (auto classifiers = download["classifiers"]; classifiers != QJsonValue::Undefined)
+                if (classifiers.toObject().contains("natives-" + cfg->getConfig("os_name").toString()))
+                    prepareNativesDownload(classifiers.toObject());
     }
+}
+
+void MinecraftCommandLineProvider::prepareNativesDownload(QJsonObject classifiers)
+{
+    const auto natives = classifiers["natives-" + Config::instance()->getConfig("os_name").toString()].toObject();
+
+    const auto cfg = Config::instance();
+    auto libraryRoot = QDir{cfg->getConfig("mcRoot").toString() + "/libraries/"};
+
+    DownloadInfo download;
+
+    download.path = libraryRoot.absoluteFilePath(natives["path"].toString());
+    if (QFile::exists(download.path)) // archive already exists, so we'll assume it is also extracted
+        return;
+
+    download.sha1 = natives["sha1"].toString();
+    download.size = natives["size"].toInt();
+    download.url  = natives["url"].toString();
+
+    qCInfo(lcCommandLineProvider).noquote() << "downloading natives" << download.path;
+    m_downloads->downloadNative(download);
 }
 
 } // namespace randomly
