@@ -13,7 +13,7 @@ qt_standard_project_setup(REQUIRES 6.5)
 qt_policy(SET QTP0004 OLD)
 
 qt_add_library (
-    MyLauncherCore SHARED
+    MyLauncherCore STATIC
     src/minecraftcommandlineprovider.h src/minecraftcommandlineprovider.cpp
     src/config.h src/config.cpp
     src/downloader.h src/downloader.cpp
@@ -58,6 +58,7 @@ target_link_libraries(MyLauncherCore
 
 target_link_libraries(MyLauncher
     PRIVATE Qt6::Quick
+    MyLauncherCore
 )
 
 include(GNUInstallDirs)
