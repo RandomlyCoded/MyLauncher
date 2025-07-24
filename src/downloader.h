@@ -13,6 +13,7 @@ struct DownloadInfo
     qsizetype size;
     QString sha1;
     bool native = false;
+    bool assets = false;
 };
 
 class Downloader : public QObject

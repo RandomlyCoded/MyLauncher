@@ -6,11 +6,13 @@
 
 namespace randomly {
 
+class DownloadInfo;
 class Downloader;
 
 class MinecraftCommandLineProvider : public QObject
 {
     Q_OBJECT
+
 public:
     explicit MinecraftCommandLineProvider(QObject *parent = nullptr);
 
@@ -37,6 +39,10 @@ private:
 
     void downloadLibraries(const QJsonDocument &versionConfig);
     void prepareNativesDownload(QJsonObject classifiers);
+
+    void loadAssets(const QJsonObject &assetIndex);
+    void maybeFinalizeAssetDownload(const DownloadInfo &info);
+    bool verifyFileSha1(const QString filename, const QString expectedSha1);
 
     Downloader *m_downloads;
 };

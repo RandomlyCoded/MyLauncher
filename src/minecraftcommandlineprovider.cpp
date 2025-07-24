@@ -47,6 +47,13 @@ QStringList MinecraftCommandLineProvider::readArguments(const QString versionNam
 
     auto mergedConfig = getCombinedVersionConfig(versionName);
 
+    // mergedConfig[downloads] yields client/server jar (save in versions/version/version.jar and pass on launch)
+
+    cfg->setTemp("assets_index_name", mergedConfig["assetIndex"].toObject()["id"].toString());
+    cfg->setTemp("assets_root", cfg->getConfig("mcRoot").toString() + "/assets");
+
+    loadAssets(mergedConfig["assetIndex"].toObject());
+
     // store information we might need later as temporary configs
     cfg->setTemp("version_name", mergedConfig["id"]);
     cfg->setTemp("game_directory", mcRoot.absolutePath());
@@ -431,6 +438,80 @@ void MinecraftCommandLineProvider::prepareNativesDownload(QJsonObject classifier
 
     qCInfo(lcCommandLineProvider).noquote() << "downloading natives" << download.path;
     m_downloads->download(download);
+}
+
+void MinecraftCommandLineProvider::loadAssets(const QJsonObject &assetIndex)
+{
+    connect(m_downloads, &Downloader::downloadCompleted, this, &MinecraftCommandLineProvider::maybeFinalizeAssetDownload);
+
+    DownloadInfo download;
+    download.path = Config::instance()->getTemp("assets_root").toString() + "/indexes/" + assetIndex["id"].toString() + ".json";
+    download.sha1 = assetIndex["sha1"].toString();
+    download.size = assetIndex["size"].toInt();
+    download.url  = assetIndex["url"].toString();
+    download.assets = true;
+
+    if (QFile::exists(download.path)) {
+        // verify assets are clean
+        qInfo() << "verifying assets";
+        maybeFinalizeAssetDownload(download);
+        return;
+    }
+
+    qCInfo(lcCommandLineProvider).noquote() << "downloading asset index" << download.path;
+    m_downloads->download(download);
+}
+
+void MinecraftCommandLineProvider::maybeFinalizeAssetDownload(const DownloadInfo &info)
+{
+    if (!info.assets)
+        return;
+
+    auto cfg = Config::instance();
+
+    qInfo() << "received reply for natives!" << info.url << info.path;
+
+    QFile index(info.path);
+    if (!index.open(QFile::ReadOnly)) {
+        qCWarning(lcCommandLineProvider) << "failed to open" << info.path << ":" << index.errorString();
+        return;
+    }
+
+    QJsonObject objects = QJsonDocument::fromJson(index.readAll())["objects"].toObject();
+
+    for (const auto &key: objects.keys()) {
+        const auto obj = objects[key].toObject();
+        DownloadInfo download;
+        download.sha1 = obj["hash"].toString();
+        download.size = obj["size"].toInt();
+
+        const auto assetPath = download.sha1.sliced(0, 2) + "/" + download.sha1;
+
+        download.url = "https://resources.download.minecraft.net/" + assetPath;
+        download.path = cfg->getConfig("mcRoot").toString() + "/assets/objects/" + assetPath;
+        if (QFile::exists(download.path))
+            if (verifyFileSha1(download.path, download.sha1))
+                continue;
+
+        m_downloads->download(download);
+    }
+}
+
+bool MinecraftCommandLineProvider::verifyFileSha1(const QString filename, const QString expectedSha1)
+{
+    QCryptographicHash sha1(QCryptographicHash::Sha1);
+    QFile f(filename);
+    if (!f.open(QFile::ReadOnly))
+        return false;
+
+    sha1.addData(f.readAll());
+
+    const auto hashResult = sha1.result().toHex();
+
+    if (hashResult != expectedSha1.toLocal8Bit())
+        return false;
+
+    return true;
 }
 
 } // namespace randomly
