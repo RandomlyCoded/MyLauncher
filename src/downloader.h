@@ -26,7 +26,7 @@ public:
     QList<DownloadInfo> queuedDownloads() { return m_downloads.values(); }
 
 signals:
-    void downloadCompleted(int downloadsRemaining);
+    void downloadCompleted(const randomly::DownloadInfo &info);
 
 private:
     void confirmDownload(QNetworkReply *reply);

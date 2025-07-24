@@ -94,7 +94,7 @@ void Downloader::confirmDownload(QNetworkReply *reply)
     if (info.native)
         extractNative(info);
 
-    emit downloadCompleted(m_downloads.size());
+    emit downloadCompleted(info);
 }
 
 void Downloader::extractNative(const DownloadInfo &info)
