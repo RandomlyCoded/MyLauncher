@@ -1,15 +1,11 @@
-- parse all launch arguments
-- proper support for conditional arguments
 - basic UI
-- Microsoft account auth
-- auth token
-+ try to launch mc
+- implement status signals for future UI
+- support to add new versions / custom installations
 - invalidating tokens after 24h
-- proper UI
 - server support
 - command line support
-- support to add new versions / custom installations
 - support to edit installations (jvm args)
+- proper UI
 
 launcher features
 ---
