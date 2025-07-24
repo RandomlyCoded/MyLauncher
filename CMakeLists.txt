@@ -29,12 +29,11 @@ qt_add_qml_module(MyLauncher
     VERSION 1.0
     QML_FILES
         qml/Main.qml
-
-    RESOURCES ReadMe.md Roadmap.md
 )
 
 add_custom_target(Documentation SOURCES
-    versionInfo.json
+    ReadMe.md
+    Roadmap.md
 )
 
 # versioning in C++
