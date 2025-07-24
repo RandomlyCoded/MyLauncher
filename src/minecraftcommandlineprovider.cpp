@@ -67,18 +67,6 @@ QStringList MinecraftCommandLineProvider::readArguments(const QString versionNam
 
     cfg->setTemp("classpath", collectClassPath(mergedConfig));
 
-    /*
-     * + store all required information as temp in Config
-     *  + merge all version files as one json?
-     * + collect class path
-     *  + download required libraries
-     * + get main class
-     * - get auth token
-     * + read arguments from combined? json, replace ${} from non-persistent Config-section
-     *
-     * - implement status signals for future UI
-     */
-
     // schedule downloads while parsing the arguments
     downloadLibraries(mergedConfig);
 
