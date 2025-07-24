@@ -427,9 +427,10 @@ void MinecraftCommandLineProvider::prepareNativesDownload(QJsonObject classifier
     download.sha1 = natives["sha1"].toString();
     download.size = natives["size"].toInt();
     download.url  = natives["url"].toString();
+    download.native = true;
 
     qCInfo(lcCommandLineProvider).noquote() << "downloading natives" << download.path;
-    m_downloads->downloadNative(download);
+    m_downloads->download(download);
 }
 
 } // namespace randomly

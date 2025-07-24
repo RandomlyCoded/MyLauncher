@@ -22,7 +22,6 @@ public:
     explicit Downloader(QObject *parent = nullptr);
 
     void download(const DownloadInfo &info);
-    void downloadNative(DownloadInfo &info);
 
     QList<DownloadInfo> queuedDownloads() { return m_downloads.values(); }
 

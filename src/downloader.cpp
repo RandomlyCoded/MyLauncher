@@ -39,12 +39,6 @@ void Downloader::download(const DownloadInfo &info)
     m_downloads.insert(info.url, info);
 }
 
-void Downloader::downloadNative(DownloadInfo &info)
-{
-    info.native = true;
-    download(info);
-}
-
 void Downloader::confirmDownload(QNetworkReply *reply)
 {
     const auto info = m_downloads[reply->url().toString()];
