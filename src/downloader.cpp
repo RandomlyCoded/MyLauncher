@@ -99,13 +99,11 @@ void Downloader::confirmDownload(QNetworkReply *reply)
 
 void Downloader::extractNative(const DownloadInfo &info)
 {
-    // qInfo() << "extracting" << info.path;
-    // extract(info.path.toUtf8().data());
-
     qInfo() << "extracting native" << info.path;
 
     archive_entry *entry;
     archive *a = archive_read_new();
+    archive *aw = archive_write_disk_new();
     archive_read_support_format_all(a);
     archive_read_support_filter_all(a);
 
@@ -134,13 +132,11 @@ void Downloader::extractNative(const DownloadInfo &info)
 
         qCInfo(lcDownload) << "inflating" << dest;
 
-        QFile f(dest);
-        if (!f.open(QFile::WriteOnly)) {
-            qCWarning(lcDownload) << "cannot open" << dest << ":" << f.errorString();
-            continue;
-        }
+        archive_entry_set_pathname(entry, dest.toLocal8Bit().data());
+        r = archive_write_header(aw, entry);
 
-        QDataStream d(&f);
+        if (r != ARCHIVE_OK)
+            qCWarning(lcDownload) << "archive_write_header(): " << archive_error_string(aw);
 
         while(true) {
             const char *buff;
@@ -150,25 +146,15 @@ void Downloader::extractNative(const DownloadInfo &info)
             if (r == ARCHIVE_EOF)
                 break;
 
-            d << QByteArray(buff, size);
-        }
+            qInfo() << size << offset;
 
-#if 0
-        r = archive_write_header(ext, entry);
-
-        if (r != ARCHIVE_OK)
-            cerr << "archive_write_header(): " << archive_error_string(ext) << endl;
-
-        else {
-            copy_data(a, ext);
-            r = archive_write_finish_entry(ext);
+            r = archive_write_data_block(aw, buff, size, offset);
 
             if (r != ARCHIVE_OK) {
-                cerr << "archive_write_finish_entry()" << archive_error_string(ext) << endl;
+                qCWarning(lcDownload) << "archive_write_data_block(): " << archive_error_string(aw);
                 break;
             }
         }
-#endif
     }
 }
 
