@@ -61,9 +61,9 @@ QStringList MinecraftCommandLineProvider::readArguments(const QString versionNam
     cfg->setTemp("assets_index_name", mergedConfig["assetIndex"]["id"]);
     cfg->setTemp("version_type", mergedConfig["type"]);
 
-    // cfg->setTemp("natives_directory", mcRoot.absoluteFilePath("bin/" + cfg->getTemp("version_name").toString()));
-    // if (const auto nativesDir = QDir(cfg->getTemp("natives_directory").toString()); !nativesDir.exists())
-    //     nativesDir.mkpath(".");
+    cfg->setTemp("natives_directory", mcRoot.absoluteFilePath("bin/" + cfg->getTemp("version_name").toString()));
+    if (const auto nativesDir = QDir(cfg->getTemp("natives_directory").toString()); !nativesDir.exists())
+        nativesDir.mkpath(".");
 
     cfg->setTemp("classpath", collectClassPath(mergedConfig));
 
