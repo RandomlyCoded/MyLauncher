@@ -1,7 +1,9 @@
 #include "minecraftcommandlineprovider.h"
 
 #include "auth.h"
+#include "config.h"
 
+#include <QDir>
 #include <QGuiApplication>
 #include <QLoggingCategory>
 #include <QProcess>
@@ -17,6 +19,59 @@ public:
     int run();
 };
 
+class Backend : public QObject
+{
+    Q_OBJECT
+
+    Q_PROPERTY(QStringList versions READ versions CONSTANT FINAL)
+    Q_PROPERTY(bool mcRunning READ running NOTIFY runningChanged FINAL)
+
+public:
+    Backend() {
+        QDir d(Config::instance()->getConfig("mcRoot").toString() + "/versions");
+        m_versions = d.entryList(QDir::Filter::Dirs | QDir::Filter::NoDotAndDotDot);
+        connect(mc, &QProcess::finished, this, &Backend::onFinished);
+        m_mcCmdLineProvider = new MinecraftCommandLineProvider{this};
+
+        connect(mc, &QProcess::stateChanged, this, [] (QProcess::ProcessState state) { qInfo() << "mc state changed:" << state; });
+        connect(mc, &QProcess::errorOccurred, this, [] (QProcess::ProcessError error) { qInfo() << "mc error occured!" << error; });
+    }
+
+    void onFinished() {
+        m_running = false;
+        emit runningChanged();
+    }
+
+    QStringList versions() const;
+    bool running() const;
+
+public slots:
+    void launch(QString version) {
+        if (running())
+            return;
+
+        const auto cmdLine = m_mcCmdLineProvider->getCommandLine(version);
+        if (!cmdLine.has_value())
+            return;
+
+        qInfo() << "launching" << version;
+
+        m_running = true;
+        emit runningChanged();
+        mc->start(cmdLine->first, cmdLine->second);
+    }
+
+signals:
+    void runningChanged();
+
+private:
+    QProcess *mc = new QProcess;
+    QStringList m_versions;
+
+    MinecraftCommandLineProvider *m_mcCmdLineProvider;
+    bool m_running = false;
+};
+
 int Application::run()
 {
     QQmlApplicationEngine qml;
@@ -26,21 +81,24 @@ int Application::run()
     Auth a;
     a.obtainMinecraftToken();
 
-    MinecraftCommandLineProvider p;
+    qmlRegisterType<Backend>("MyLauncher", 1, 0, "Backend");
 
-    auto cmdLine = p.getCommandLine("fabric-loader-0.15.11-1.18.2").value();
-    // auto cmdLine = p.getCommandLine("myver").value();
-    qInfo() << "\n\n" << cmdLine.second << "\n\n";
-
-    QProcess mc;
-    qInfo() << QProcess::execute(cmdLine.first, cmdLine.second);
-
-    qml.loadFromModule("MyLauncher", "Main");
+    qml.loadFromModule("MyLauncherGui", "Main");
 
     if (qml.rootObjects().isEmpty())
         return EXIT_FAILURE;
 
     return exec();
+}
+
+QStringList Backend::versions() const
+{
+    return m_versions;
+}
+
+bool Backend::running() const
+{
+    return m_running;
 }
 
 } // namespace randomly
@@ -49,3 +107,5 @@ int main(int argc, char *argv[])
 {
     return randomly::Application{argc, argv}.run();
 }
+
+#include "main.moc"
