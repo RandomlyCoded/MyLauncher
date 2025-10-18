@@ -30,9 +30,11 @@ jobs:
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
+          
           - os: ubuntu-latest
             c_compiler: clang
             cpp_compiler: clang++
+            
           - platform: android
             runner: ubuntu-latest
             arch: android_arm64_v8a
@@ -57,7 +59,7 @@ jobs:
       with:
         version: 6.8.1
         setup-python: false
-        modules: qtnetworkauth
+        modules: qtnetworkauth, core
         target:  ${{ matrix.target || 'desktop' }}
         tools:   ${{ matrix.tools  || ''        }}
         arch:    ${{ matrix.arch                }}
