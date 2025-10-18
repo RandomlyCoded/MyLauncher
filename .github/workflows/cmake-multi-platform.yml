@@ -10,9 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
+    runs-on: ${{ 'ubuntu-latest'android  strategy:
       # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
       fail-fast: false
 
@@ -23,9 +21,10 @@ jobs:
       #
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
       matrix:
-        os: [ubuntu-latest]
+        gcc: [ubuntu-latest]
         build_type: [Release]
         c_compiler: [gcc, clang]
+        platform: ['android', 'linux'
         include:
           - os: ubuntu-latest
             c_compiler: gcc
@@ -33,6 +32,21 @@ jobs:
           - os: ubuntu-latest
             c_compiler: clang
             cpp_compiler: clang++
+          - platform: android
+            runner: ubuntu-latest
+            arch: android_arm64_v8a
+            target: android
+            cmake-flags: [
+              '-DANDROID_ABI:STRING=arm64-v8a',
+              '-DANDROID_PLATFORM:STRING=android-23',
+              '-DANDROID_SDK_ROOT:PATH=$ANDROID_SDK_ROOT',
+              '-DANDROID_NDK:PATH=$ANDROID_NDK_ROOT',
+              '-DANDROID_STL:STRING=c++_shared',
+              '-DANDROID_USE_LEGACY_TOOLCHAIN_FILE:BOOL=OFF',
+              '-DQT_HOST_PATH:PATH=$QT_ROOT_DIR/../gcc_64',
+              '-DQT_NO_GLOBAL_APK_TARGET_PART_OF_ALL:BOOL=ON',
+              '-GNinja', '--toolchain', '$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake',
+            ]
 
     steps:
     - uses: actions/checkout@v4
@@ -43,6 +57,10 @@ jobs:
         version: 6.8.1
         setup-python: false
         modules: qtnetworkauth
+        target:  ${{ matrix.target || 'desktop' }}
+        tools:   ${{ matrix.tools  || ''        }}
+        arch:    ${{ matrix.arch                }}
+        cache:   true
     
     - name: install libArchive
       run: sudo apt install libarchive-dev libarchive13*
@@ -68,6 +86,14 @@ jobs:
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
+    - name: temporarily show artifacts
+      run: ls -R
+      
+    - uses: actions/upload-artifact@v4
+       with:
+        name: cmake-qt${{matrix.version}}-${{matrix.platform}}
+
+        
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
