@@ -37,7 +37,18 @@ jobs:
             runner: ubuntu-latest
             arch: android_arm64_v8a
             target: android
-            
+            cmake-flags: [
+              '-DANDROID_ABI:STRING=arm64-v8a',
+              '-DANDROID_PLATFORM:STRING=android-23',
+              '-DANDROID_SDK_ROOT:PATH=$ANDROID_SDK_ROOT',
+              '-DANDROID_NDK:PATH=$ANDROID_NDK_ROOT',
+              '-DANDROID_STL:STRING=c++_shared',
+              '-DANDROID_USE_LEGACY_TOOLCHAIN_FILE:BOOL=OFF',
+              '-DQT_HOST_PATH:PATH=$QT_ROOT_DIR/../gcc_64',
+              '-DQT_NO_GLOBAL_APK_TARGET_PART_OF_ALL:BOOL=ON',
+              '-GNinja', '--toolchain', '$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake',
+           ]
+    
     steps:
     - uses: actions/checkout@v4
 
@@ -70,7 +81,7 @@ jobs:
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        -S ${{ github.workspace }}
+        ${{ join(matrix.cmake-flags, ' 'cmake-flags  -S ${{ github.workspace }}
 
     - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
