@@ -82,6 +82,8 @@ jobs:
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+        -DQT_DIR:PATH=$QT_ROOT_DIR/lib/cmake/${{matrix.package}}
+        -DCMAKE_FIND_ROOT_PATH:PATH=$QT_ROOT_DIR
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         ${{ join(matrix.cmake-flags, ' ') }}
         -S ${{ github.workspace }}
