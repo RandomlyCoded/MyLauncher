@@ -59,7 +59,7 @@ jobs:
       with:
         version: 6.8.1
         setup-python: false
-        modules: qtnetworkauth, qtcore
+        modules: qtnetworkauth
         target:  ${{ matrix.target || 'desktop' }}
         tools:   ${{ matrix.tools  || ''        }}
         arch:    ${{ matrix.arch                }}
