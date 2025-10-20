@@ -67,11 +67,11 @@ jobs:
     
     - name: install libArchive (arm64)
       if: matrix.platform == 'android'
-      run: sudo dpkg --add-architecture arm64 && sudo apt install libarchive-dev:arm64 libarchive13*:arm64
+      run: sudo dpkg --add-architecture arm64 && sudo apt install libarchive-dev:arm64 libarchive13:arm64
 
     - name: install libArchive (default)
       if: matrix.platform != 'android'
-      run: sudo apt install libarchive-dev libarchive13*
+      run: sudo apt install libarchive-dev libarchive13
         
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
