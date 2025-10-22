@@ -11,7 +11,7 @@ set (libArchiveName LibArchive::LibArchive)
 
 if (NOT LibArchive_FOUND)
     add_subdirectory(libarchive)
-    set (libArchiveName archive)
+    set (libArchiveName archive PARENT_SCOPE)
 endif()
 
 qt_standard_project_setup(REQUIRES 6.5)
