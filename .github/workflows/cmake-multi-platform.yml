@@ -65,13 +65,13 @@ jobs:
         arch:    ${{ matrix.arch                }}
         cache:   true
     
-    - name: install libArchive (arm64)
-      if: matrix.platform == 'android'
-      run: sudo dpkg --add-architecture arm64 && sudo apt install libarchive-dev:arm64 libarchive13:arm64
+    # - name: install libArchive (arm64)
+    #   if: matrix.platform == 'android'
+    #   run: sudo dpkg --add-architecture arm64 && sudo apt install libarchive-dev:arm64 libarchive13:arm64
 
-    - name: install libArchive (default)
-      if: matrix.platform != 'android'
-      run: sudo apt install libarchive-dev libarchive13
+    # - name: install libArchive
+    #   if: matrix.platform != 'android'
+    #   run: sudo apt install libarchive-dev libarchive13
         
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
@@ -79,7 +79,7 @@ jobs:
       shell: bash
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
-
+        echo "build-output-binary=${{ matrix.platform != 'android' && './build/MyLauncher' || 'ifFalse' }} >> "$GITHUB_OUTPUT"
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
@@ -103,7 +103,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: cmake-qt${{matrix.version}}-${{matrix.platform}}
-
+        path: ${{ steps.strings.build-output-binary }}
         
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
