@@ -9,6 +9,8 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Quick NetworkAuth)
 
 add_subdirectory(third-party)
 
+include_directories(third-party/libarchive/libarchive)
+
 qt_standard_project_setup(REQUIRES 6.5)
 
 qt_policy(SET QTP0004 OLD)
