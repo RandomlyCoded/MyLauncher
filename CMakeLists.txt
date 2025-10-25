@@ -1,18 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(MyLauncher VERSION 0.1 LANGUAGES CXX)
+project(MyLauncher VERSION 0.1 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 23)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Quick NetworkAuth)
-find_package(LibArchive)
-set (libArchiveName LibArchive::LibArchive)
 
-if (NOT LibArchive_FOUND)
-    add_subdirectory(libarchive)
-    set (libArchiveName archive PARENT_SCOPE)
-endif()
+add_subdirectory(third-party)
 
 qt_standard_project_setup(REQUIRES 6.5)
 
@@ -55,11 +50,13 @@ set_target_properties(MyLauncher PROPERTIES
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
+
+    FOLDER qtc_runnable
 )
 
 target_link_libraries(MyLauncherCore
     PRIVATE Qt6::Core Qt6::Gui Qt6::NetworkAuth
-    ${libArchiveName}
+    archive
 )
 
 target_link_libraries(MyLauncher
