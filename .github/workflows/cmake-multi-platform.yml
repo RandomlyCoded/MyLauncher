@@ -49,8 +49,8 @@ jobs:
               '-DQT_HOST_PATH:PATH=$QT_ROOT_DIR/../gcc_64',
               '-DQT_NO_GLOBAL_APK_TARGET_PART_OF_ALL:BOOL=ON',
               '-GNinja', '--toolchain', '$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake',
-              '--target', 'apk'
-           ]
+            ]
+            extra_args: '--target apk'
     
     steps:
     - uses: actions/checkout@v4
@@ -91,7 +91,7 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }} ${{ matrix.extra_args }}
 
     - name: temporarily show artifacts
       run: ls build -R
