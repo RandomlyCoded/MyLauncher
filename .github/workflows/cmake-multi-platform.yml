@@ -74,7 +74,7 @@ jobs:
       shell: bash
       run: |
         echo "build-output-dir=${{ github.workspace }}/build"                                               >> "$GITHUB_OUTPUT"
-        echo "build-output-binary=${{ matrix.platform != 'android' && './build/MyLauncher' || 'ifFalse' }}" >> "$GITHUB_OUTPUT"
+        echo "build-output-binary=${{ matrix.platform != 'android' && './build/MyLauncher' || './build/android-build/MyLauncher.apk' }}" >> "$GITHUB_OUTPUT"
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -102,7 +102,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: cmake-qt${{matrix.version}}-${{matrix.platform}}-${{matrix.c_compiler}}
-        path: 'build/MyLauncher' #${{ steps.strings.build-output-binary }}
+        path: ${{ matrix.platform != 'android' && './build/MyLauncher' || './build/android-build/MyLauncher.apk' }} #${{ steps.strings.build-output-binary }}
 
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
