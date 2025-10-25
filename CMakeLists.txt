@@ -58,7 +58,7 @@ set_target_properties(MyLauncher PROPERTIES
 
 target_link_libraries(MyLauncherCore
     PRIVATE Qt6::Core Qt6::Gui Qt6::NetworkAuth
-    archive
+    archive_static
 )
 
 target_link_libraries(MyLauncher
