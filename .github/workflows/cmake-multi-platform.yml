@@ -94,7 +94,9 @@ jobs:
 
     - name: temporarily show artifacts
       run: ls build -R
-           echo ${{ steps.strings.build-output-binary }}
+
+    - name: debug
+      run: echo ${{ steps.strings.build-output-binary }}
       
     - uses: actions/upload-artifact@v4
       with:
