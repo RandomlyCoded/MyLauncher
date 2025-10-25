@@ -93,7 +93,7 @@ jobs:
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
     - name: build Android APK
-      if: matrix.platform == "android"
+      if: matrix.platform == 'android'
       run:
         ./build/MyLauncher
 
