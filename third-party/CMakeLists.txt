@@ -5,3 +5,5 @@ set(ENABLE_TAR OFF)
 set(ENABLE_TEST OFF)
 
 add_subdirectory(libarchive)
+
+include_directories(libarchive/libarchive)
