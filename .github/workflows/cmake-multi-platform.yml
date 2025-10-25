@@ -50,7 +50,7 @@ jobs:
               '-DQT_NO_GLOBAL_APK_TARGET_PART_OF_ALL:BOOL=ON',
               '-GNinja', '--toolchain', '$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake',
             ]
-            extra_args: '--target apk'
+            extra_args: '--target aab'
     
     steps:
     - uses: actions/checkout@v4
@@ -73,7 +73,7 @@ jobs:
       id: strings
       shell: bash
       run: |
-        echo "build-output-dir=${{ github.workspace }}/build"                                               >> "$GITHUB_OUTPUT"
+        echo "build-output-dir=${{ github.workspace }}/build"                                                                            >> "$GITHUB_OUTPUT"
         echo "build-output-binary=${{ matrix.platform != 'android' && './build/MyLauncher' || './build/android-build/MyLauncher.apk' }}" >> "$GITHUB_OUTPUT"
 
     - name: Configure CMake
@@ -93,12 +93,6 @@ jobs:
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }} ${{ matrix.extra_args }}
 
-    - name: temporarily show artifacts
-      run: ls build -R
-
-    - name: debug
-      run: echo ${{ steps.strings.build-output-binary }}
-      
     - uses: actions/upload-artifact@v4
       with:
         name: cmake-qt${{matrix.version}}-${{matrix.platform}}-${{matrix.c_compiler}}
