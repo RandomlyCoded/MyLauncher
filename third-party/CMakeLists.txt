@@ -6,4 +6,4 @@ set(ENABLE_TEST OFF)
 
 add_subdirectory(libarchive)
 
-include_directories(libarchive/libarchive)
+include_directories(third-party/libarchive/libarchive)
